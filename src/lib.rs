@@ -3,7 +3,7 @@
 //! This crate provides a generic trait-based framework for creating deterministic automata
 //! that can handle state machines more complex than traditional finite state automata.
 //! States can carry arbitrary data, allowing recognition of some patterns beyond regular
-//! languages.
+//! languages, and multiple automata can be composed using product constructions.
 //!
 //! # Core Concepts
 //!
@@ -12,11 +12,24 @@
 //! - **State**: Can be any `Clone` type, not limited to simple enums
 //! - **Alphabet**: Input symbols that can be compared for equality
 //! - **StateSort**: Classification of states (e.g., Accept/Reject)
+//! - **Product Construction**: Combining multiple automata to run in parallel
 //!
-//! # Example
+//! # Modules
 //!
-//! The included [`CounterAutomatonBlueprint`] recognizes the context-free language
-//! a^n b^n (equal numbers of 'a's followed by equal numbers of 'b's):
+//! ## [`counter_automaton_example`]
+//! 
+//! Demonstrates recognition of the context-free language a^n b^n using counter-based
+//! states, showcasing capabilities beyond regular languages.
+//!
+//! ## [`product_automaton`]
+//!
+//! Provides product construction blueprints for combining automata, including general
+//! product operations and specialized boolean operations (union, intersection) for
+//! automata with [`BasicStateSort`].
+//!
+//! # Examples
+//!
+//! ## Simple Context-Free Language Recognition
 //!
 //! ```
 //! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort, counter_automaton_example::CounterAutomatonBlueprint};
@@ -27,9 +40,26 @@
 //! assert_eq!(blueprint.characterise(&input).unwrap(), BasicStateSort::Accept);
 //! ```
 //!
-//! This demonstrates how the framework can handle automata with states indexed by
-//! counters, going beyond traditional finite state machines while maintaining
-//! deterministic behavior.
+//! ## Combining Automata with Union
+//!
+//! ```
+//! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
+//! use deterministic_automata::counter_automaton_example::CounterAutomatonBlueprint;
+//! use deterministic_automata::product_automaton::BasicUnionAutomatonBlueprint;
+//!
+//! let a_blueprint = CounterAutomatonBlueprint::new('a', 'b');
+//! let b_blueprint = CounterAutomatonBlueprint::new('x', 'y');
+//! let union = BasicUnionAutomatonBlueprint::new(&a_blueprint, &b_blueprint);
+//!
+//! // Accepts strings from either language
+//! let input1: Vec<char> = "aabb".chars().collect();
+//! let input2: Vec<char> = "xxyy".chars().collect();
+//! assert_eq!(union.characterise(&input1).unwrap(), BasicStateSort::Accept);
+//! assert_eq!(union.characterise(&input2).unwrap(), BasicStateSort::Accept);
+//! ```
+//!
+//! These examples demonstrate how the framework handles both individual complex automata
+//! and compositions of multiple automata, maintaining deterministic behavior throughout.
 
 pub mod counter_automaton_example;
 pub mod product_automaton;
