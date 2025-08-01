@@ -58,6 +58,57 @@
 //! assert_eq!(union.characterise(&input2).unwrap(), BasicStateSort::Accept);
 //! ```
 //!
+//! ## Basic Finite State Automaton
+//!
+//! Here's a simple DFA that detects byte sequences containing the pattern [0,0]:
+//!
+//! ```
+//! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
+//!
+//! #[derive(Clone, PartialEq, Debug)]
+//! enum ContainsDoubleZeroState {
+//!     Start,     // Initial state - haven't seen pattern yet
+//!     SawZero,   // Just saw a 0, looking for another
+//!     Found,     // Found [0,0] - accepting state
+//! }
+//!
+//! struct ContainsDoubleZero;
+//!
+//! impl DeterministicAutomatonBlueprint for ContainsDoubleZero {
+//!     type State = ContainsDoubleZeroState;
+//!     type Alphabet = u8;
+//!     type StateSort = BasicStateSort;
+//!     type ErrorType = String;
+//!
+//!     fn initial_state(&self) -> Self::State {
+//!         ContainsDoubleZeroState::Start
+//!     }
+//!
+//!     fn state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+//!         Ok(match state {
+//!             ContainsDoubleZeroState::Found => BasicStateSort::Accept,
+//!             _ => BasicStateSort::Reject,
+//!         })
+//!     }
+//!
+//!     fn transition_map(&self, state: &Self::State, byte: &Self::Alphabet) -> Result<Self::State, Self::ErrorType> {
+//!         Ok(match (state, *byte) {
+//!             (ContainsDoubleZeroState::Start, 0) => ContainsDoubleZeroState::SawZero,
+//!             (ContainsDoubleZeroState::Start, _) => ContainsDoubleZeroState::Start,
+//!             (ContainsDoubleZeroState::SawZero, 0) => ContainsDoubleZeroState::Found,
+//!             (ContainsDoubleZeroState::SawZero, _) => ContainsDoubleZeroState::Start,
+//!             (ContainsDoubleZeroState::Found, _) => ContainsDoubleZeroState::Found, // Stay accepting
+//!         })
+//!     }
+//! }
+//!
+//! let dfa = ContainsDoubleZero;
+//! assert_eq!(dfa.characterise(&vec![1, 0, 0, 2]).unwrap(), BasicStateSort::Accept);
+//! assert_eq!(dfa.characterise(&vec![0, 0]).unwrap(), BasicStateSort::Accept);
+//! assert_eq!(dfa.characterise(&vec![1, 0, 1, 0]).unwrap(), BasicStateSort::Reject);
+//! assert_eq!(dfa.characterise(&vec![1, 2, 3]).unwrap(), BasicStateSort::Reject);
+//! ```
+//!
 //! These examples demonstrate how the framework handles both individual complex automata
 //! and compositions of multiple automata, maintaining deterministic behavior throughout.
 
@@ -94,6 +145,63 @@ pub mod product_automaton;
 /// # Provided Methods
 ///
 /// * [`characterise`](Self::characterise) - Processes an entire input sequence
+///
+/// # Example: Simple Finite State Automaton
+///
+/// Here's how to implement a basic DFA that accepts strings ending with "ab":
+///
+/// ```
+/// use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
+///
+/// // Define the states of our DFA
+/// #[derive(Clone, PartialEq, Debug)]
+/// enum SimpleState {
+///     Start,     // Initial state
+///     SawA,      // Just saw an 'a'
+///     AcceptAB,  // Saw "ab" - accepting state
+/// }
+///
+/// // Our DFA blueprint
+/// struct EndsWithAB;
+///
+/// impl DeterministicAutomatonBlueprint for EndsWithAB {
+///     type State = SimpleState;
+///     type Alphabet = char;
+///     type StateSort = BasicStateSort;
+///     type ErrorType = String;
+///
+///     fn initial_state(&self) -> Self::State {
+///         SimpleState::Start
+///     }
+///
+///     fn state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+///         Ok(match state {
+///             SimpleState::AcceptAB => BasicStateSort::Accept,
+///             _ => BasicStateSort::Reject,
+///         })
+///     }
+///
+///     fn transition_map(&self, state: &Self::State, character: &Self::Alphabet) -> Result<Self::State, Self::ErrorType> {
+///         Ok(match (state, character) {
+///             (SimpleState::Start, 'a') => SimpleState::SawA,
+///             (SimpleState::Start, _) => SimpleState::Start,
+///             (SimpleState::SawA, 'a') => SimpleState::SawA,  // Stay in SawA for multiple 'a's
+///             (SimpleState::SawA, 'b') => SimpleState::AcceptAB,
+///             (SimpleState::SawA, _) => SimpleState::Start,
+///             (SimpleState::AcceptAB, 'a') => SimpleState::SawA,
+///             (SimpleState::AcceptAB, _) => SimpleState::Start,
+///         })
+///     }
+/// }
+///
+/// // Usage
+/// let dfa = EndsWithAB;
+/// assert_eq!(dfa.characterise(&"ab".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Accept);
+/// assert_eq!(dfa.characterise(&"cab".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Accept);
+/// assert_eq!(dfa.characterise(&"aab".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Accept);
+/// assert_eq!(dfa.characterise(&"a".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Reject);
+/// assert_eq!(dfa.characterise(&"ba".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Reject);
+/// ```
 pub trait DeterministicAutomatonBlueprint {
     /// The type representing internal automaton states.
     ///
