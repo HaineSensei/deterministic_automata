@@ -14,7 +14,7 @@ pub trait DeterministicAutomatonBlueprint {
 
     fn characterise(&self, word: &[Self::Alphabet]) -> Result<Self::StateSort, Self::ErrorType>
     where
-        Self : Sized
+        Self: Sized
     {
         let mut automaton: DeterministicAutomaton<'_, Self> = DeterministicAutomaton::new(self);
         for character in word {
@@ -80,11 +80,8 @@ where
     Alphabet: PartialEq
 {
     type State = CounterState;
-
     type Alphabet = Alphabet;
-
     type StateSort = BasicStateSort;
-
     type ErrorType = String;
 
     fn initial_state(&self) -> Self::State {
@@ -95,7 +92,7 @@ where
         match match state {
             CounterState::Start(x) => x,
             CounterState::End(x) => x,
-            CounterState::Reject => &1
+            CounterState::Reject => return Ok(BasicStateSort::Reject)
         } {
             0 => Ok(BasicStateSort::Accept),
             _ => Ok(BasicStateSort::Reject)
@@ -105,16 +102,16 @@ where
     fn transition_map(&self, state: &Self::State, character: &Self::Alphabet) -> Result<Self::State, Self::ErrorType> {
         Ok(match state {
             CounterState::Start(counter) => {
-                if character == &self.first {
+                if *character == self.first {
                     CounterState::Start(counter+1)
-                } else if character == &self.second && counter > &0 {
+                } else if *character == self.second && *counter > 0 {
                     CounterState::End(*counter - 1)
                 } else {
                     CounterState::Reject
                 }
             },
             CounterState::End(counter) => {
-                if character == &self.second && counter > &0 {
+                if *character == self.second && *counter > 0 {
                     CounterState::End(counter-1)
                 } else {
                     CounterState::Reject
@@ -129,17 +126,23 @@ where
 mod tests {
     use super::*;
 
+    fn str_to_vec_char(s: &str) -> Vec<char> {
+        s.chars().collect()
+    }
+
     #[test]
     fn counter_automaton_blueprint() -> Result<(),String> {
         let blueprint = CounterAutomatonBlueprint::new('a','b');
-        assert_eq!(blueprint.characterise(&"".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Accept);
-        assert_eq!(blueprint.characterise(&"ab".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Accept);
-        assert_eq!(blueprint.characterise(&"aabb".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Accept);
-        assert_eq!(blueprint.characterise(&"aaaaaaaabbbbbbbb".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Accept);
-        assert_eq!(blueprint.characterise(&"aaaabbb".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Reject);
-        assert_eq!(blueprint.characterise(&"bb".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Reject);
-        assert_eq!(blueprint.characterise(&"cab".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Reject);
-        assert_eq!(blueprint.characterise(&"aacbb".to_string().chars().collect::<Vec<_>>())?, BasicStateSort::Reject);
+
+        assert_eq!(blueprint.characterise(&str_to_vec_char(""))?, BasicStateSort::Accept);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("ab"))?, BasicStateSort::Accept);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("aabb"))?, BasicStateSort::Accept);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("aaaaaaaabbbbbbbb"))?, BasicStateSort::Accept);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("aaaabbb"))?, BasicStateSort::Reject);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("bb"))?, BasicStateSort::Reject);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("cab"))?, BasicStateSort::Reject);
+        assert_eq!(blueprint.characterise(&str_to_vec_char("aacbb"))?, BasicStateSort::Reject);
+
         Ok(())
     }
 }
