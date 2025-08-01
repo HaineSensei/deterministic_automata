@@ -1,5 +1,5 @@
 use crate::*;
-use counter_example::CounterAutomatonBlueprint;
+use counter_automaton_example::CounterAutomatonBlueprint;
 
 fn str_to_vec_char(s: &str) -> Vec<char> {
     s.chars().collect()

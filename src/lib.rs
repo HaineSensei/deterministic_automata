@@ -19,7 +19,7 @@
 //! a^n b^n (equal numbers of 'a's followed by equal numbers of 'b's):
 //!
 //! ```
-//! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort, counter_example::CounterAutomatonBlueprint};
+//! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort, counter_automaton_example::CounterAutomatonBlueprint};
 //!
 //! let blueprint = CounterAutomatonBlueprint::new('a', 'b');
 //! let input: Vec<char> = "aabb".chars().collect();
@@ -30,6 +30,9 @@
 //! This demonstrates how the framework can handle automata with states indexed by
 //! counters, going beyond traditional finite state machines while maintaining
 //! deterministic behavior.
+
+pub mod counter_automaton_example;
+pub mod product_automaton;
 
 /// A blueprint for defining deterministic automata with custom state and alphabet types.
 ///
@@ -182,7 +185,7 @@ pub enum BasicStateSort {
     Reject
 }
 
-pub mod counter_example;
+
 
 #[cfg(test)]
 mod tests;
