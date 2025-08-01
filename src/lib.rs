@@ -60,7 +60,7 @@
 //!
 //! ## Basic Finite State Automaton
 //!
-//! Here's a simple DFA that detects byte sequences containing the pattern [0,0]:
+//! Here's a simple DFA that detects byte sequences containing the pattern \[0,0\]:
 //!
 //! ```
 //! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
