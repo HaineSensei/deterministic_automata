@@ -1,3 +1,55 @@
+//! Example automaton that recognizes the context-free language a^n b^n.
+//!
+//! This module provides a concrete example of how the deterministic automata framework
+//! can handle languages beyond regular languages by using states that carry additional
+//! data (counters). The [`CounterAutomatonBlueprint`] demonstrates recognition of the
+//! context-free language a^n b^n, which cannot be recognized by traditional finite
+//! state automata.
+//!
+//! # The Language a^n b^n
+//!
+//! The language a^n b^n consists of strings with:
+//! - Zero or more occurrences of symbol 'a'
+//! - Followed by exactly the same number of occurrences of symbol 'b'
+//! - For any n ≥ 0
+//!
+//! Examples of strings in this language:
+//! - `""` (empty string, n=0)
+//! - `"ab"` (n=1)
+//! - `"aabb"` (n=2)
+//! - `"aaabbb"` (n=3)
+//!
+//! Examples of strings NOT in this language:
+//! - `"a"` (unbalanced)
+//! - `"ba"` (wrong order)
+//! - `"aab"` (unequal counts)
+//! - `"abab"` (interleaved)
+//!
+//! # Key Insight: Beyond Regular Languages
+//!
+//! This example is significant because it demonstrates how the framework can recognize
+//! languages that are provably impossible for traditional finite state automata to
+//! handle. The key insight is that states can carry arbitrary data - in this case,
+//! a counter that tracks the balance between 'a' and 'b' symbols.
+//!
+//! # State Machine Design
+//!
+//! The automaton uses three types of states:
+//! - [`CounterState::Start(n)`] - Reading 'a' symbols, counter tracks how many seen
+//! - [`CounterState::End(n)`] - Reading 'b' symbols, counter tracks how many more needed
+//! - [`CounterState::Reject`] - Invalid input detected
+//!
+//! The state space is theoretically infinite (counters can grow arbitrarily large),
+//! but the automaton remains deterministic and efficiently processable.
+//!
+//! # Framework Benefits
+//!
+//! This example showcases several advantages of the framework:
+//! - **Expressiveness**: Can handle non-regular languages
+//! - **Determinism**: No backtracking or ambiguity in state transitions
+//! - **Composability**: Can be combined with other automata using product operations
+//! - **Type Safety**: Counter overflow could be caught at runtime depending on build configuration
+
 use crate::{DeterministicAutomatonBlueprint, BasicStateSort};
 
 /// A blueprint for an automaton that recognizes the language a^n b^n.
