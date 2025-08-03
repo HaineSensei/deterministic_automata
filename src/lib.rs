@@ -114,6 +114,7 @@
 
 pub mod counter_automaton_example;
 pub mod product_automaton;
+pub mod either_automaton;
 
 /// A blueprint for defining deterministic automata with custom state and alphabet types.
 ///
