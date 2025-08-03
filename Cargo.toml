@@ -1,6 +1,6 @@
 [package]
 name = "deterministic_automata"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Kazuya Haine <kazuyahaine@icloud.com>"]
 edition = "2024"
 description = "A framework for implementing deterministic automata with arbitrary state complexity"
@@ -10,6 +10,3 @@ documentation = "https://docs.rs/deterministic_automata"
 readme = "README.md"
 keywords = ["automata", "finite-state", "parser", "regex", "language"]
 categories = ["algorithms", "parsing"]
-
-[dependencies]
-either = "1.15.0"
