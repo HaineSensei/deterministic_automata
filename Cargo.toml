@@ -10,3 +10,6 @@ documentation = "https://docs.rs/deterministic_automata"
 readme = "README.md"
 keywords = ["automata", "finite-state", "parser", "regex", "language"]
 categories = ["algorithms", "parsing"]
+
+[dependencies]
+either = "1.15.0"
