@@ -96,6 +96,7 @@ The main trait for defining automaton behavior with associated types for states,
 
 - **`counter_automaton_example`**: Recognizes the context-free language a^n b^n using counter-based states
 - **`product_automaton`**: Product constructions including union and intersection operations
+- **`either_automaton`**: Runtime choice between two different automaton blueprint types using a sum type
 
 ### Runtime Execution
 

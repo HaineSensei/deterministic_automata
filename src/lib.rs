@@ -27,6 +27,12 @@
 //! product operations and specialized boolean operations (union, intersection) for
 //! automata with [`BasicStateSort`].
 //!
+//! ## [`either_automaton`]
+//!
+//! Provides runtime choice between two different automaton blueprint types using
+//! an Either sum type, enabling conditional automaton selection while maintaining
+//! type safety.
+//!
 //! # Examples
 //!
 //! ## Simple Context-Free Language Recognition
