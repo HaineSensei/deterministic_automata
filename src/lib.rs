@@ -316,10 +316,21 @@ where
         self.blueprint.state_sort_map(&self.current_state)
     }
 
+    /// Returns a reference to the current state.
+    ///
+    /// This method provides read-only access to the automaton's internal state,
+    /// which can be useful for inspecting state data beyond simple classification.
+    /// Unlike [`current_state_sort`](Self::current_state_sort), this returns the
+    /// actual state value rather than its classification.
     pub fn view_state(&'a self) -> &'a Blueprint::State {
         &self.current_state
     }
 
+    /// Consumes the automaton and returns the current state.
+    ///
+    /// This method takes ownership of the automaton and extracts its current state.
+    /// Useful when you need to transfer the state to another context or when the
+    /// automaton's lifetime is ending but you want to preserve the state.
     pub fn take_state(self) -> Blueprint::State {
         self.current_state
     }
