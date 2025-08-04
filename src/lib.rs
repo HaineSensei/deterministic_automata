@@ -315,6 +315,14 @@ where
         self.current_state = next_state;
         self.blueprint.state_sort_map(&self.current_state)
     }
+
+    pub fn view_state(&'a self) -> &'a Blueprint::State {
+        &self.current_state
+    }
+
+    pub fn take_state(self) -> Blueprint::State {
+        self.current_state
+    }
 }
 
 /// Basic binary classification for automaton states.
