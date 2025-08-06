@@ -8,5 +8,5 @@ license = "MIT"
 repository = "https://github.com/HaineSensei/deterministic_automata"
 documentation = "https://docs.rs/deterministic_automata"
 readme = "README.md"
-keywords = ["automata", "finite-state", "parser", "regex", "language"]
+keywords = ["automata", "state-machine", "parser", "regex", "language"]
 categories = ["algorithms", "parsing"]
