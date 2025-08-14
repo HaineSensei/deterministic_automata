@@ -52,7 +52,7 @@ fn product_automaton_state_management() -> Result<(), String> {
     assert_eq!(initial_sort.0, BasicStateSort::Accept);
     assert_eq!(initial_sort.1, BasicStateSort::Accept);
     
-    let after_a = automaton.update_state(&'a')?;
+    let after_a = automaton.update_sort_state(&'a')?;
     assert_eq!(after_a.0, BasicStateSort::Reject);
     assert_eq!(after_a.1, BasicStateSort::Reject);
     

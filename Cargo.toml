@@ -1,9 +1,9 @@
 [package]
 name = "deterministic_automata"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Kazuya Haine <kazuyahaine@icloud.com>"]
 edition = "2024"
-description = "A framework for implementing deterministic automata with arbitrary state complexity"
+description = "A framework for implementing deterministic and mutation automata with arbitrary state complexity"
 license = "MIT"
 repository = "https://github.com/HaineSensei/deterministic_automata"
 documentation = "https://docs.rs/deterministic_automata"

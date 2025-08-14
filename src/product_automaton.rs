@@ -43,6 +43,7 @@
 //! automata in this framework, meaning the result is always another recognizable language.
 
 use crate::{BasicStateSort, DeterministicAutomatonBlueprint};
+use crate::mutation_automaton::MutationAutomatonBlueprint;
 
 /// A blueprint for the general product construction of two deterministic automata.
 ///
@@ -77,6 +78,7 @@ use crate::{BasicStateSort, DeterministicAutomatonBlueprint};
 /// # Construction
 ///
 /// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
 pub struct ProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
@@ -173,6 +175,7 @@ where
 /// # Construction
 ///
 /// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
 pub struct BasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
@@ -271,6 +274,7 @@ where
 /// # Construction
 ///
 /// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
 pub struct BasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
@@ -336,5 +340,283 @@ where
         let (a, b) = (self.first, self.second);
         let (a_next, b_next) = (a.transition_map(&state.0, character)?,b.transition_map(&state.1, character)?);
         Ok((a_next, b_next))
+    }
+}
+
+/// A mutation automaton blueprint for the general product construction of two mutation automata.
+///
+/// This blueprint implements the Cartesian product of two mutation automata, creating a new
+/// mutation automaton that runs both component automata in parallel with in-place state mutation.
+/// The resulting automaton's state space is the product of the component state spaces, and its
+/// state sort preserves both component classifications as a tuple.
+///
+/// # Type Parameters
+///
+/// * `A`, `B` - The component mutation automaton blueprint types
+/// * `Alphabet` - The input symbol type (must be the same for both automata)
+/// * `ErrorType` - The error type (must be the same for both automata)
+///
+/// # State and Behavior
+///
+/// * **State**: `(A::State, B::State)` - Pairs of component states
+/// * **StateSort**: `(A::StateSort, B::StateSort)` - Pairs of component classifications
+/// * **Transitions**: Both component automata mutate their states simultaneously in place
+///
+/// # Construction
+///
+/// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MutationProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    first: &'a A,
+    second: &'b B
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    /// Creates a new mutation product automaton blueprint from two component blueprints.
+    ///
+    /// # Parameters
+    ///
+    /// * `first` - Reference to the first component mutation automaton blueprint
+    /// * `second` - Reference to the second component mutation automaton blueprint
+    ///
+    /// # Returns
+    ///
+    /// A new mutation product blueprint that preserves both component state classifications
+    /// as a tuple, with in-place state mutation for both components.
+    pub fn new(first: &'a A, second: &'b B) -> Self {
+        Self {
+            first,
+            second
+        }
+    }
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    type State = (A::State, B::State);
+
+    type Alphabet = Alphabet;
+
+    type StateSort = (A::StateSort, B::StateSort);
+
+    type ErrorType = ErrorType;
+
+    fn initial_mutation_state(&self) -> Self::State {
+        (self.first.initial_mutation_state(), self.second.initial_mutation_state())
+    }
+
+    fn mutation_state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+        let (a, b) = (self.first, self.second);
+        let (a_sort, b_sort) = (a.mutation_state_sort_map(&state.0)?, b.mutation_state_sort_map(&state.1)?);
+        Ok((a_sort, b_sort))
+    }
+
+    fn mutation_transition_map(&self, state: &mut Self::State, character: &Self::Alphabet) -> Result<(), Self::ErrorType> {
+        let (a, b) = (self.first, self.second);
+        a.mutation_transition_map(&mut state.0, character)?;
+        b.mutation_transition_map(&mut state.1, character)?;
+        Ok(())
+    }
+}
+
+/// A mutation automaton blueprint for the union (logical OR) of two mutation automata with [`BasicStateSort`].
+///
+/// This blueprint creates a mutation automaton that accepts a string if **either** of the
+/// component mutation automata accepts it, implementing the union of their recognized languages:
+/// `L(A) ∪ L(B)` with in-place state mutation.
+///
+/// # Boolean Logic
+///
+/// The state classification follows logical OR semantics:
+/// - `Accept OR Accept → Accept`
+/// - `Accept OR Reject → Accept`  
+/// - `Reject OR Accept → Accept`
+/// - `Reject OR Reject → Reject`
+///
+/// # Type Parameters
+///
+/// * `A`, `B` - Component mutation automaton blueprints (must use [`BasicStateSort`])
+/// * `Alphabet` - Input symbol type (shared by both automata)
+/// * `ErrorType` - Error type (shared by both automata)
+///
+/// # Construction
+///
+/// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MutationBasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    first: &'a A,
+    second: &'b B
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationBasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    /// Creates a new mutation union automaton blueprint from two component blueprints.
+    ///
+    /// # Parameters
+    ///
+    /// * `first` - Reference to the first component mutation automaton blueprint
+    /// * `second` - Reference to the second component mutation automaton blueprint
+    ///
+    /// # Returns
+    ///
+    /// A new mutation union blueprint that accepts strings accepted by either component,
+    /// with in-place state mutation for both components.
+    pub fn new(first: &'a A, second: &'b B) -> Self {
+        Self {
+            first,
+            second
+        }
+    }
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    type State = (A::State, B::State);
+
+    type Alphabet = Alphabet;
+
+    type StateSort = BasicStateSort;
+
+    type ErrorType = ErrorType;
+
+    fn initial_mutation_state(&self) -> Self::State {
+        (self.first.initial_mutation_state(), self.second.initial_mutation_state())
+    }
+
+    fn mutation_state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+        Ok(match (self.first.mutation_state_sort_map(&state.0)?, self.second.mutation_state_sort_map(&state.1)?) {
+            (BasicStateSort::Accept, BasicStateSort::Accept) => BasicStateSort::Accept,
+            (BasicStateSort::Accept, BasicStateSort::Reject) => BasicStateSort::Accept,
+            (BasicStateSort::Reject, BasicStateSort::Accept) => BasicStateSort::Accept,
+            (BasicStateSort::Reject, BasicStateSort::Reject) => BasicStateSort::Reject,
+        })
+    }
+
+    fn mutation_transition_map(&self, state: &mut Self::State, character: &Self::Alphabet) -> Result<(), Self::ErrorType> {
+        let (a, b) = (self.first, self.second);
+        a.mutation_transition_map(&mut state.0, character)?;
+        b.mutation_transition_map(&mut state.1, character)?;
+        Ok(())
+    }
+}
+
+/// A mutation automaton blueprint for the intersection (logical AND) of two mutation automata with [`BasicStateSort`].
+///
+/// This blueprint creates a mutation automaton that accepts a string only if **both** of the
+/// component mutation automata accept it, implementing the intersection of their recognized
+/// languages: `L(A) ∩ L(B)` with in-place state mutation.
+///
+/// # Boolean Logic
+///
+/// The state classification follows logical AND semantics:
+/// - `Accept AND Accept → Accept`
+/// - `Accept AND Reject → Reject`
+/// - `Reject AND Accept → Reject`
+/// - `Reject AND Reject → Reject`
+///
+/// # Type Parameters
+///
+/// * `A`, `B` - Component mutation automaton blueprints (must use [`BasicStateSort`])
+/// * `Alphabet` - Input symbol type (shared by both automata)
+/// * `ErrorType` - Error type (shared by both automata)
+///
+/// # Construction
+///
+/// Use [`new`](Self::new) to create an instance from two component blueprint references.
+#[derive(Debug, Clone, PartialEq)]
+pub struct MutationBasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    first: &'a A,
+    second: &'b B
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationBasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    /// Creates a new mutation intersection automaton blueprint from two component blueprints.
+    ///
+    /// # Parameters
+    ///
+    /// * `first` - Reference to the first component mutation automaton blueprint
+    /// * `second` - Reference to the second component mutation automaton blueprint
+    ///
+    /// # Returns
+    ///
+    /// A new mutation intersection blueprint that accepts strings accepted by both components,
+    /// with in-place state mutation for both components.
+    pub fn new(first: &'a A, second: &'b B) -> Self {
+        Self {
+            first,
+            second
+        }
+    }
+}
+
+impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+where
+    A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
+    Alphabet: PartialEq
+{
+    type State = (A::State, B::State);
+
+    type Alphabet = Alphabet;
+
+    type StateSort = BasicStateSort;
+
+    type ErrorType = ErrorType;
+
+    fn initial_mutation_state(&self) -> Self::State {
+        (self.first.initial_mutation_state(), self.second.initial_mutation_state())
+    }
+
+    fn mutation_state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+        Ok(match (self.first.mutation_state_sort_map(&state.0)?, self.second.mutation_state_sort_map(&state.1)?) {
+            (BasicStateSort::Accept, BasicStateSort::Accept) => BasicStateSort::Accept,
+            (BasicStateSort::Accept, BasicStateSort::Reject) => BasicStateSort::Reject,
+            (BasicStateSort::Reject, BasicStateSort::Accept) => BasicStateSort::Reject,
+            (BasicStateSort::Reject, BasicStateSort::Reject) => BasicStateSort::Reject,
+        })
+    }
+
+    fn mutation_transition_map(&self, state: &mut Self::State, character: &Self::Alphabet) -> Result<(), Self::ErrorType> {
+        let (a, b) = (self.first, self.second);
+        a.mutation_transition_map(&mut state.0, character)?;
+        b.mutation_transition_map(&mut state.1, character)?;
+        Ok(())
     }
 }

@@ -1,9 +1,9 @@
-//! Either automaton implementation for runtime choice between two automata blueprints.
+//! Either type implementation for deterministic automaton blueprints.
 //!
-//! This module provides an [`Either`] type and its implementation of 
-//! [`DeterministicAutomatonBlueprint`], allowing you to create a blueprint that represents 
-//! a choice between two different automaton types. This enables runtime selection between 
-//! automata while maintaining compile-time type safety.
+//! This module provides an [`Either`] type that implements [`DeterministicAutomatonBlueprint`],
+//! allowing you to create a blueprint that represents a choice between two different 
+//! deterministic automaton types. This enables runtime selection between automata while 
+//! maintaining compile-time type safety.
 //!
 //! # Example: Runtime Selection Between Different Automaton Types
 //!
@@ -11,7 +11,7 @@
 //! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
 //! use deterministic_automata::counter_automaton_example::CounterAutomatonBlueprint;
 //! use deterministic_automata::product_automaton::BasicUnionAutomatonBlueprint;
-//! use deterministic_automata::either_automaton::Either;
+//! use deterministic_automata::either_automaton::deterministic::Either;
 //!
 //! // Create different types of automata
 //! let counter_automaton = CounterAutomatonBlueprint::new('a', 'b');
@@ -29,10 +29,10 @@
 
 use crate::DeterministicAutomatonBlueprint;
 
-/// A sum type representing a choice between two values.
+/// A sum type representing a choice between two values for deterministic automata.
 ///
 /// This type mimics the required functionality of `either::Either` for use in 
-/// automaton composition, allowing runtime selection between two different 
+/// deterministic automaton composition, allowing runtime selection between two different 
 /// automaton blueprint types.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Either<A,B> {

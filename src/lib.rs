@@ -1,6 +1,6 @@
-//! A framework for implementing deterministic automata with arbitrary state complexity.
+//! A framework for implementing deterministic and mutation automata with arbitrary state complexity.
 //!
-//! This crate provides a generic trait-based framework for creating deterministic automata
+//! This crate provides a generic trait-based framework for creating deterministic and mutation automata
 //! that can handle state machines more complex than traditional finite state automata.
 //! States can carry arbitrary data, allowing recognition of some patterns beyond regular
 //! languages, and multiple automata can be composed using product constructions.
@@ -8,10 +8,11 @@
 //! # Core Concepts
 //!
 //! - **Blueprint**: Defines the structure and behavior of an automaton through the
-//!   [`DeterministicAutomatonBlueprint`] trait
+//!   [`DeterministicAutomatonBlueprint`] or [`MutationAutomatonBlueprint`] traits
 //! - **State**: Can be any `Clone` type, not limited to simple enums
 //! - **Alphabet**: Input symbols that can be compared for equality
 //! - **StateSort**: Classification of states (e.g., Accept/Reject)
+//! - **Paradigms**: Functional (deterministic) vs. in-place mutation approaches
 //! - **Product Construction**: Combining multiple automata to run in parallel
 //!
 //! # Modules
@@ -30,8 +31,14 @@
 //! ## [`either_automaton`]
 //!
 //! Provides runtime choice between two different automaton blueprint types using
-//! an Either sum type, enabling conditional automaton selection while maintaining
-//! type safety.
+//! Either sum types, with separate implementations for deterministic and mutation
+//! paradigms in the `deterministic` and `mutation` submodules.
+//!
+//! ## [`mutation_automaton`]
+//!
+//! Provides the [`MutationAutomatonBlueprint`] trait for automata that modify state
+//! in-place rather than returning new states, with automatic interoperability with
+//! deterministic automata through a blanket implementation.
 //!
 //! # Examples
 //!
@@ -46,22 +53,37 @@
 //! assert_eq!(blueprint.characterise(&input).unwrap(), BasicStateSort::Accept);
 //! ```
 //!
-//! ## Combining Automata with Union
+//! ## Mutation Automaton with In-Place State Updates
 //!
 //! ```
-//! use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
-//! use deterministic_automata::counter_automaton_example::CounterAutomatonBlueprint;
-//! use deterministic_automata::product_automaton::BasicUnionAutomatonBlueprint;
+//! use deterministic_automata::{BasicStateSort, mutation_automaton::MutationAutomatonBlueprint};
 //!
-//! let a_blueprint = CounterAutomatonBlueprint::new('a', 'b');
-//! let b_blueprint = CounterAutomatonBlueprint::new('x', 'y');
-//! let union = BasicUnionAutomatonBlueprint::new(&a_blueprint, &b_blueprint);
+//! struct CountingBlueprint;
 //!
-//! // Accepts strings from either language
-//! let input1: Vec<char> = "aabb".chars().collect();
-//! let input2: Vec<char> = "xxyy".chars().collect();
-//! assert_eq!(union.characterise(&input1).unwrap(), BasicStateSort::Accept);
-//! assert_eq!(union.characterise(&input2).unwrap(), BasicStateSort::Accept);
+//! impl MutationAutomatonBlueprint for CountingBlueprint {
+//!     type State = i32;
+//!     type Alphabet = char;
+//!     type StateSort = BasicStateSort;
+//!     type ErrorType = String;
+//!
+//!     fn initial_mutation_state(&self) -> Self::State { 0 }
+//!
+//!     fn mutation_state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+//!         Ok(if *state >= 0 { BasicStateSort::Accept } else { BasicStateSort::Reject })
+//!     }
+//!
+//!     fn mutation_transition_map(&self, state: &mut Self::State, character: &Self::Alphabet) -> Result<(), Self::ErrorType> {
+//!         match character {
+//!             '+' => *state += 1,
+//!             '-' => *state -= 1,
+//!             _ => return Err("Invalid character".to_string()),
+//!         }
+//!         Ok(())
+//!     }
+//! }
+//!
+//! let blueprint = CountingBlueprint;
+//! assert_eq!(blueprint.mutation_characterise(&['+', '+', '-']).unwrap(), BasicStateSort::Accept);
 //! ```
 //!
 //! ## Basic Finite State Automaton
@@ -121,6 +143,7 @@
 pub mod counter_automaton_example;
 pub mod product_automaton;
 pub mod either_automaton;
+pub mod mutation_automaton;
 
 /// A blueprint for defining deterministic automata with custom state and alphabet types.
 ///
@@ -209,6 +232,12 @@ pub mod either_automaton;
 /// assert_eq!(dfa.characterise(&"a".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Reject);
 /// assert_eq!(dfa.characterise(&"ba".chars().collect::<Vec<_>>()).unwrap(), BasicStateSort::Reject);
 /// ```
+///
+/// # Interoperability
+///
+/// All types implementing `DeterministicAutomatonBlueprint` automatically implement
+/// [`MutationAutomatonBlueprint`] through a blanket implementation, enabling seamless
+/// interoperability between functional and mutation-based automaton paradigms.
 pub trait DeterministicAutomatonBlueprint {
     /// The type representing internal automaton states.
     ///
@@ -255,11 +284,18 @@ pub trait DeterministicAutomatonBlueprint {
     where
         Self: Sized
     {
-        let mut automaton: DeterministicAutomaton<'_, Self> = DeterministicAutomaton::new(self);
+        let mut automaton = self.automaton();
         for character in word {
             automaton.update_state(character)?;
         }
         automaton.current_state_sort()
+    }
+
+    fn automaton<'a>(&'a self) -> DeterministicAutomaton<'a, Self> 
+    where
+        Self: Sized
+    {
+        DeterministicAutomaton::new(self)
     }
 }
 
@@ -310,10 +346,15 @@ where
     ///
     /// The state classification after the transition, or an error if the
     /// transition or state validation fails.
-    pub fn update_state(&mut self, character: &Blueprint::Alphabet) -> Result<Blueprint::StateSort, Blueprint::ErrorType> {
+    pub fn update_state(&mut self, character: &Blueprint::Alphabet) -> Result<(), Blueprint::ErrorType> {
         let next_state: <Blueprint as DeterministicAutomatonBlueprint>::State = self.blueprint.transition_map(&self.current_state, character)?;
         self.current_state = next_state;
-        self.blueprint.state_sort_map(&self.current_state)
+        Ok(())
+    }
+
+    pub fn update_sort_state(&mut self, character: &Blueprint::Alphabet) -> Result<Blueprint::StateSort, Blueprint::ErrorType> {
+        self.update_state(character)?;
+        self.current_state_sort()
     }
 
     /// Returns a reference to the current state.

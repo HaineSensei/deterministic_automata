@@ -58,6 +58,7 @@ use crate::{DeterministicAutomatonBlueprint, BasicStateSort};
 /// followed by exactly n occurrences of a second symbol, for any n ≥ 0.
 /// It demonstrates how the framework can handle context-free languages using
 /// states that carry counter information.
+#[derive(Debug, Clone, PartialEq)]
 pub struct CounterAutomatonBlueprint<Alphabet> {
     first: Alphabet,
     second: Alphabet
