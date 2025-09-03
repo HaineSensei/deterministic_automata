@@ -1,6 +1,6 @@
 [package]
 name = "deterministic_automata"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Kazuya Haine <kazuyahaine@icloud.com>"]
 edition = "2024"
 description = "A framework for implementing deterministic and mutation automata with arbitrary state complexity"

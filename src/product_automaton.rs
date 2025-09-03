@@ -43,7 +43,7 @@
 //! automata in this framework, meaning the result is always another recognizable language.
 
 use crate::{BasicStateSort, DeterministicAutomatonBlueprint};
-use crate::mutation_automaton::MutationAutomatonBlueprint;
+use crate::MutationAutomatonBlueprint;
 
 /// A blueprint for the general product construction of two deterministic automata.
 ///
@@ -114,7 +114,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for ProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for ProductAutomatonBlueprint<'_, '_, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
     B: DeterministicAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
@@ -210,7 +210,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for BasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for BasicUnionAutomatonBlueprint<'_,'_, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
     B: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
@@ -309,7 +309,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for BasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> DeterministicAutomatonBlueprint for BasicIntersectionAutomatonBlueprint<'_, '_, A, B, Alphabet, ErrorType>
 where
     A: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
     B: DeterministicAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
@@ -401,7 +401,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationProductAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationProductAutomatonBlueprint<'_, '_, A, B, Alphabet, ErrorType>
 where
     A: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
     B: MutationAutomatonBlueprint<Alphabet = Alphabet, ErrorType = ErrorType>,
@@ -492,7 +492,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicUnionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicUnionAutomatonBlueprint<'_, '_, A, B, Alphabet, ErrorType>
 where
     A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
     B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
@@ -586,7 +586,7 @@ where
     }
 }
 
-impl<'a, 'b, A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicIntersectionAutomatonBlueprint<'a, 'b, A, B, Alphabet, ErrorType>
+impl<A, B, Alphabet, ErrorType> MutationAutomatonBlueprint for MutationBasicIntersectionAutomatonBlueprint<'_, '_, A, B, Alphabet, ErrorType>
 where
     A: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,
     B: MutationAutomatonBlueprint<Alphabet = Alphabet, StateSort = BasicStateSort, ErrorType = ErrorType>,

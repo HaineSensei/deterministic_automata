@@ -1,5 +1,5 @@
 use deterministic_automata::*;
-use deterministic_automata::mutation_automaton::MutationAutomatonBlueprint;
+use deterministic_automata::MutationAutomatonBlueprint;
 use deterministic_automata::either_automaton::mutation::Either;
 
 #[derive(Debug, Clone, PartialEq)]

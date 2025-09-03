@@ -1,5 +1,5 @@
 use deterministic_automata::*;
-use deterministic_automata::mutation_automaton::{MutationAutomatonBlueprint, MutationAutomaton};
+use deterministic_automata::{MutationAutomatonBlueprint, MutationAutomaton};
 
 struct MutableCounterBlueprint {
     increment_char: char,

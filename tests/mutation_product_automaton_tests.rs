@@ -1,5 +1,5 @@
 use deterministic_automata::*;
-use deterministic_automata::mutation_automaton::MutationAutomatonBlueprint;
+use deterministic_automata::MutationAutomatonBlueprint;
 use deterministic_automata::product_automaton::{MutationProductAutomatonBlueprint, MutationBasicUnionAutomatonBlueprint, MutationBasicIntersectionAutomatonBlueprint};
 
 #[derive(Debug, Clone, PartialEq)]

@@ -77,7 +77,7 @@ assert_eq!(blueprint.characterise(&"aabb".chars().collect()).unwrap(), BasicStat
 ### Mutation Automaton
 
 ```rust
-use deterministic_automata::{BasicStateSort, mutation_automaton::MutationAutomatonBlueprint};
+use deterministic_automata::{BasicStateSort, MutationAutomatonBlueprint};
 
 struct Counter;
 

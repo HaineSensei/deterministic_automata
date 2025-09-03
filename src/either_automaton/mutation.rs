@@ -8,7 +8,7 @@
 //! # Example: Runtime Selection Between Different Mutation Automaton Types
 //!
 //! ```
-//! use deterministic_automata::mutation_automaton::MutationAutomatonBlueprint;
+//! use deterministic_automata::MutationAutomatonBlueprint;
 //! use deterministic_automata::either_automaton::mutation::Either;
 //! # use deterministic_automata::BasicStateSort;
 //! 
@@ -37,7 +37,7 @@
 //! };
 //! ```
 
-use crate::mutation_automaton::MutationAutomatonBlueprint;
+use crate::MutationAutomatonBlueprint;
 
 /// A sum type representing a choice between two values for mutation automata.
 ///

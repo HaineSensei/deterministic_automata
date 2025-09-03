@@ -56,7 +56,7 @@
 //! ## Mutation Automaton with In-Place State Updates
 //!
 //! ```
-//! use deterministic_automata::{BasicStateSort, mutation_automaton::MutationAutomatonBlueprint};
+//! use deterministic_automata::{BasicStateSort, MutationAutomatonBlueprint};
 //!
 //! struct CountingBlueprint;
 //!
@@ -144,6 +144,8 @@ pub mod counter_automaton_example;
 pub mod product_automaton;
 pub mod either_automaton;
 pub mod mutation_automaton;
+
+pub use mutation_automaton::{MutationAutomatonBlueprint, MutationAutomaton};
 
 /// A blueprint for defining deterministic automata with custom state and alphabet types.
 ///
@@ -291,7 +293,7 @@ pub trait DeterministicAutomatonBlueprint {
         automaton.current_state_sort()
     }
 
-    fn automaton<'a>(&'a self) -> DeterministicAutomaton<'a, Self> 
+    fn automaton(&self) -> DeterministicAutomaton<'_, Self> 
     where
         Self: Sized
     {

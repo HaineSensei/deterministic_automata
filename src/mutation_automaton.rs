@@ -14,7 +14,7 @@
 //! # Example
 //!
 //! ```
-//! use deterministic_automata::{BasicStateSort, mutation_automaton::MutationAutomatonBlueprint};
+//! use deterministic_automata::{BasicStateSort, MutationAutomatonBlueprint};
 //!
 //! struct Counter;
 //!
@@ -108,7 +108,7 @@ pub trait MutationAutomatonBlueprint {
     }
 
     /// Creates a runtime automaton instance from this blueprint.
-    fn mutation_automaton<'a>(&'a self) -> MutationAutomaton<'a, Self> 
+    fn mutation_automaton(&self) -> MutationAutomaton<'_, Self> 
     where 
         Self: Sized
     {
