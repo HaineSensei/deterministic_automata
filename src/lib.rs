@@ -40,6 +40,12 @@
 //! in-place rather than returning new states, with automatic interoperability with
 //! deterministic automata through a blanket implementation.
 //!
+//! ## [`dynamic_automaton`]
+//!
+//! Provides dyn-compatible traits enabling runtime polymorphism over automata with
+//! different state types. Solves the trait object compatibility problem by erasing
+//! only the state type while keeping alphabet, state sort, and error types concrete.
+//!
 //! # Examples
 //!
 //! ## Simple Context-Free Language Recognition
@@ -137,6 +143,63 @@
 //! assert_eq!(dfa.characterise(&vec![1, 2, 3]).unwrap(), BasicStateSort::Reject);
 //! ```
 //!
+//! ## Dynamic Dispatch Over Heterogeneous State Types
+//!
+//! ```
+//! use deterministic_automata::{DynamicAutomatonBlueprint, counter_automaton_example::CounterAutomatonBlueprint};
+//! # use deterministic_automata::{DeterministicAutomatonBlueprint, BasicStateSort};
+//! #
+//! # #[derive(Clone, PartialEq, Debug)]
+//! # enum ContainsDoubleZeroState {
+//! #     Start,
+//! #     SawZero,
+//! #     Found,
+//! # }
+//! #
+//! # struct ContainsDoubleZero;
+//! #
+//! # impl DeterministicAutomatonBlueprint for ContainsDoubleZero {
+//! #     type State = ContainsDoubleZeroState;
+//! #     type Alphabet = u8;
+//! #     type StateSort = BasicStateSort;
+//! #     type ErrorType = String;
+//! #
+//! #     fn initial_state(&self) -> Self::State {
+//! #         ContainsDoubleZeroState::Start
+//! #     }
+//! #
+//! #     fn state_sort_map(&self, state: &Self::State) -> Result<Self::StateSort, Self::ErrorType> {
+//! #         Ok(match state {
+//! #             ContainsDoubleZeroState::Found => BasicStateSort::Accept,
+//! #             _ => BasicStateSort::Reject,
+//! #         })
+//! #     }
+//! #
+//! #     fn transition_map(&self, state: &Self::State, byte: &Self::Alphabet) -> Result<Self::State, Self::ErrorType> {
+//! #         Ok(match (state, *byte) {
+//! #             (ContainsDoubleZeroState::Start, 0) => ContainsDoubleZeroState::SawZero,
+//! #             (ContainsDoubleZeroState::Start, _) => ContainsDoubleZeroState::Start,
+//! #             (ContainsDoubleZeroState::SawZero, 0) => ContainsDoubleZeroState::Found,
+//! #             (ContainsDoubleZeroState::SawZero, _) => ContainsDoubleZeroState::Start,
+//! #             (ContainsDoubleZeroState::Found, _) => ContainsDoubleZeroState::Found,
+//! #         })
+//! #     }
+//! # }
+//!
+//! let pattern_automaton = ContainsDoubleZero;  // Uses enum state
+//! let counter_automaton = CounterAutomatonBlueprint::new(1, 2);  // Uses counter state
+//!
+//! // Store automata with different state types in the same collection
+//! let automata: Vec<&DynamicAutomatonBlueprint<u8, BasicStateSort, String>> = vec![
+//!     &pattern_automaton,
+//!     &counter_automaton,  
+//! ];
+//!
+//! // Use them polymorphically despite different internal state representations
+//! assert_eq!(automata[0].characterise(&vec![1, 0, 0]).unwrap(), BasicStateSort::Accept);
+//! assert_eq!(automata[1].characterise(&vec![1, 1, 2, 2]).unwrap(), BasicStateSort::Accept);
+//! ```
+//!
 //! These examples demonstrate how the framework handles both individual complex automata
 //! and compositions of multiple automata, maintaining deterministic behavior throughout.
 
@@ -144,8 +207,10 @@ pub mod counter_automaton_example;
 pub mod product_automaton;
 pub mod either_automaton;
 pub mod mutation_automaton;
+pub mod dynamic_automaton;
 
 pub use mutation_automaton::{MutationAutomatonBlueprint, MutationAutomaton};
+pub use dynamic_automaton::{DynamicAutomaton, DynamicAutomatonBlueprint};
 
 /// A blueprint for defining deterministic automata with custom state and alphabet types.
 ///

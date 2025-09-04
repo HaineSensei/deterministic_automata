@@ -13,6 +13,7 @@ This crate provides a generic trait-based framework for creating deterministic a
 - **Dual Paradigms**: Both functional (deterministic) and in-place mutation approaches
 - **Beyond Regular Languages**: Support for context-free and other complex language patterns
 - **Product Constructions**: Combine multiple automata with union, intersection, and custom operations
+- **Dynamic Dispatch**: Runtime polymorphism over automata with different state types via dyn-compatible traits
 - **Interoperability**: Seamless integration between deterministic and mutation automata
 - **Type-Safe Error Handling**: Comprehensive validation with custom error types
 
@@ -107,6 +108,28 @@ let counter = Counter;
 assert_eq!(counter.mutation_characterise(&['+', '+', '-']).unwrap(), BasicStateSort::Accept);
 ```
 
+### Dynamic Dispatch Over Heterogeneous State Types
+
+```rust
+use deterministic_automata::{DynamicAutomatonBlueprint, counter_automaton_example::CounterAutomatonBlueprint};
+
+// Use the EndsWithAB automaton from the first example above
+let pattern_automaton = EndsWithAB;
+let counter_automaton = CounterAutomatonBlueprint::new('a', 'b');
+
+// Store automata with different state types in the same collection
+let automata: Vec<&DynamicAutomatonBlueprint<char, BasicStateSort, String>> = vec![
+    &pattern_automaton,  // Uses enum state
+    &counter_automaton,  // Uses counter state  
+];
+
+// Use them polymorphically despite different internal state representations
+for automaton in automata {
+    let result = automaton.characterise(&"aab".chars().collect::<Vec<_>>());
+    println!("Result: {:?}", result.unwrap());
+}
+```
+
 ## Core Components
 
 ### Traits
@@ -120,6 +143,7 @@ assert_eq!(counter.mutation_characterise(&['+', '+', '-']).unwrap(), BasicStateS
 - **`product_automaton`**: Product constructions including union and intersection operations for both paradigms
 - **`either_automaton`**: Runtime choice between different automaton types with deterministic/mutation submodules
 - **`mutation_automaton`**: Core mutation automaton types and blanket interoperability implementation
+- **`dynamic_automaton`**: Dyn-compatible traits for runtime polymorphism over heterogeneous state types
 
 ### Runtime Execution
 
