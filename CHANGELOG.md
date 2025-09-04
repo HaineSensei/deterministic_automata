@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.7] - 2025-01-04
+## [0.1.8] - 2025-09-04
+
+### Fixed
+- Corrected changelog dates to accurately reflect actual release dates
+
+## [0.1.7] - 2025-09-04
 
 ### Added
 - CHANGELOG.md file to track changes between versions following Keep a Changelog format
 - Changelog reference section in README.md
 
-## [0.1.6] - 2025-01-04
+## [0.1.6] - 2025-09-04
 
 ### Added
 - Dynamic dispatch support for automata with heterogeneous state types
@@ -27,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated crate-level documentation to include dynamic dispatch examples
 - Enhanced README with dynamic dispatch capabilities and examples
 
-## [0.1.5] - 2025-01-03
+## [0.1.5] - 2025-09-03
 
 ### Added
 - Re-exported `MutationAutomatonBlueprint` and `MutationAutomaton` at crate root for improved API ergonomics
@@ -37,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Used lifetime elision where appropriate to reduce verbosity
 - Fixed documentation warnings
 
-## [0.1.4] - 2025-01-02
+## [0.1.4] - 2025-08-14
 
 ### Added
 - Mutation automata paradigm with `MutationAutomatonBlueprint` trait for in-place state modifications
@@ -78,7 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Note
 - This version was yanked due to dependency issues, fixed in 0.1.2
 
-## [0.1.0] - 2025-08-03
+## [0.1.0] - 2025-08-01
 
 ### Added
 - Initial release of deterministic automata framework
